@@ -1,40 +1,208 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ht">
 <head>
-  <meta charset="UTF-8">
-  <title>Kraze Paryaj Live</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pari & Chat Live</title>
+<style>
+  /* ===== GLOBAL STYLING ===== */
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #0a0a0a;
+    color: #fff;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* ===== HEADER ===== */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #141414;
+    border-bottom: 3px solid #ff9900;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  header .logo { display: flex; align-items: center; }
+  header .logo img { height: 40px; margin-right: 10px; }
+  header h1 { font-size: 1.5rem; font-weight: bold; color: #ff9900; }
+  header nav a { margin-left: 20px; font-weight: bold; color: #fff; transition: color 0.3s; }
+  header nav a:hover { color: #ff9900; }
+
+  /* ===== CONTAINER ===== */
+  .main-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 15px;
+  }
+
+  /* ===== BET SECTION ===== */
+  #bet-container {
+    width: 45%;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 15px #00ff99;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  #bet-container h2 { color: #00ff99; margin-bottom: 10px; }
+  #bet-container select, #bet-container input {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background-color: #111;
+    color: #fff;
+    font-weight: bold;
+  }
+  #place-bet {
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: #ff9900;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  #place-bet:hover { background-color: #cc7700; transform: scale(1.05); }
+
+  /* ===== CHAT SECTION ===== */
+  #chat-container {
+    width: 45%;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 15px #00ccff;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+  }
+  #chat-container h2 { color: #00ccff; margin-bottom: 10px; }
+  #chat-messages { flex: 1; overflow-y: auto; background-color: #111; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+  #chat-messages div { background: linear-gradient(90deg, #00ccff, #0088cc); border-radius: 8px; padding: 8px; margin-bottom: 5px; animation: fadeIn 0.5s; }
+  @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+  #chat-input { padding: 10px; border-radius: 8px; border: none; margin-bottom: 10px; }
+  #chat-send { padding: 10px; font-weight: bold; border: none; border-radius: 8px; background-color: #00ccff; cursor: pointer; transition: transform 0.2s, background 0.2s; }
+  #chat-send:hover { background-color: #0088cc; transform: scale(1.05); }
+
+  /* ===== FLASH ANIMATION ===== */
+  .flash { animation: flashBg 0.5s; }
+  @keyframes flashBg { 0%{background-color:#ff9900;}50%{background-color:#fff;}100%{background-color:#ff9900;} }
+
+  /* ===== RESPONSIVE ===== */
+  @media(max-width:900px){
+    .main-container { flex-direction: column; align-items: center; }
+    #bet-container, #chat-container { width: 90%; }
+  }
+</style>
 </head>
+<body>
 
-<body style="font-family:sans-serif;background:#111;color:white;">
+<header>
+  <div class="logo">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Football-icon.png" alt="Logo">
+    <h1>Pari Live</h1>
+  </div>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Rezilta</a>
+    <a href="#">Promo</a>
+  </nav>
+</header>
 
-<h2>⚽ Match LIVE</h2>
+<div class="main-container">
+  <!-- BET SECTION -->
+  <div id="bet-container">
+    <h2>Parye Kounye</h2>
+    <select id="match-select">
+      <option value="match1">Ekip A vs Ekip B</option>
+      <option value="match2">Ekip C vs Ekip D</option>
+      <option value="match3">Ekip E vs Ekip F</option>
+    </select>
+    <select id="bet-type">
+      <option value="goal">Goal</option>
+      <option value="card">Carton</option>
+      <option value="tir">Tir cadré</option>
+    </select>
+    <input type="number" id="bet-amount" placeholder="Antre montan ou">
+    <button id="place-bet">Parye</button>
+  </div>
 
-<div id="matchs">Chargement...</div>
+  <!-- CHAT SECTION -->
+  <div id="chat-container">
+    <h2>Chat Live</h2>
+    <div id="chat-messages"></div>
+    <input type="text" id="chat-input" placeholder="Ekri mesaj ou...">
+    <button id="chat-send">Voye</button>
+  </div>
+</div>
 
 <script>
-const API_KEY = "3eb49d897a709e429c68c0c50318d0cb";
+  // ===== CHAT FUNCTIONALITY =====
+  const messages = document.getElementById('chat-messages');
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
 
-fetch("https://v3.football.api-sports.io/fixtures?live=all", {
-  method: "GET",
-  headers: {
-    "x-apisports-key": API_KEY
-  }
-})
-.then(res => res.json())
-.then(data => {
-  const container = document.getElementById("matchs");
-  container.innerHTML = "";
-
-  data.response.forEach(match => {    
-    container.innerHTML += `
-      <p>${match.teams.home.name} vs ${match.teams.away.name}</p>
-    `;
+  let savedMessages = JSON.parse(localStorage.getItem('chatMessages')||'[]');
+  savedMessages.forEach(m=>{
+    const msg = document.createElement('div');
+    msg.textContent=m;
+    messages.appendChild(msg);
   });
-})
-.catch(() => {
-  document.getElementById("matchs").innerHTML = "Erreur...";
-});
+
+  function sendMessage(){
+    if(input.value.trim()!==''){
+      const msg=document.createElement('div');
+      msg.textContent=input.value;
+      messages.appendChild(msg);
+      messages.scrollTop=messages.scrollHeight;
+      savedMessages.push(input.value);
+      localStorage.setItem('chatMessages',JSON.stringify(savedMessages));
+      input.value='';
+    }
+  }
+
+  sendBtn.addEventListener('click',sendMessage);
+  input.addEventListener('keypress',(e)=>{if(e.key==='Enter') sendMessage();});
+
+  // ===== BET FUNCTIONALITY =====
+  const betContainer = document.getElementById('bet-container');
+  function sendWhatsAppNotification(match,type,amount){
+    const phone="+50932927398"; 
+    const message=`Nou resevwa nouvo parye: ${match} - ${type} pou ${amount} HTG`;
+    const url=`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+    window.open(url,"_blank");
+  }
+
+  document.getElementById('place-bet').addEventListener('click',()=>{
+    const match=document.getElementById('match-select').value;
+    const type=document.getElementById('bet-type').value;
+    const amount=document.getElementById('bet-amount').value;
+
+    if(amount>0){
+      let bets=JSON.parse(localStorage.getItem('bets')||'[]');
+      bets.push({match,type,amount,date:new Date()});
+      localStorage.setItem('bets',JSON.stringify(bets));
+
+      alert(`Parye anrejistre: ${match} - ${type} pou ${amount} HTG`);
+      sendWhatsAppNotification(match,type,amount);
+
+      betContainer.classList.add('flash');
+      setTimeout(()=>betContainer.classList.remove('flash'),500);
+
+      document.getElementById('bet-amount').value='';
+    } else { alert("Tanpri antre yon montan valid."); }
+  });
 </script>
 
-</body>  </!--whatsapp-->
-</html>   
+</body>
+</html>
