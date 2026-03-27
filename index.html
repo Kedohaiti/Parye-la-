@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kraze Paryaj Live</title>
+</head>
+
+<body style="font-family:sans-serif;background:#111;color:white;">
+
+<h2>⚽ Match LIVE</h2>
+
+<div id="matchs">Chargement...</div>
+
+<script>
+const API_KEY = "3eb49d897a709e429c68c0c50318d0cb";
+
+fetch("https://v3.football.api-sports.io/fixtures?live=all", {
+  method: "GET",
+  headers: {
+    "x-apisports-key": API_KEY
+  }
+})
+.then(res => res.json())
+.then(data => {
+  const container = document.getElementById("matchs");
+  container.innerHTML = "";
+
+  data.response.forEach(match => {    
+    container.innerHTML += `
+      <p>${match.teams.home.name} vs ${match.teams.away.name}</p>
+    `;
+  });
+})
+.catch(() => {
+  document.getElementById("matchs").innerHTML = "Erreur...";
+});
+</script>
+
+</body>  </!--whatsapp-->
+</html>   
