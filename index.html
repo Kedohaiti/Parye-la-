@@ -12,7 +12,7 @@ header{background:#111;padding:15px;text-align:center;color:orange}
 .box{background:#1e1e1e;margin-top:10px;padding:10px;border-radius:10px}
 input,button{width:100%;margin-top:5px;padding:10px;border:none;border-radius:5px}
 button{background:orange;font-weight:bold;cursor:pointer}
-#chat{height:150px;overflow:auto;background:#111;margin-top:5px;padding:5px}
+#chat,#bets{height:150px;overflow:auto;background:#111;margin-top:5px;padding:5px}
 .msg{background:#00ccff;margin:3px;padding:5px;border-radius:5px}
 </style>
 </head>
@@ -55,4 +55,71 @@ button{background:orange;font-weight:bold;cursor:pointer}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.
+import { getFirestore, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyA98JXVs0cnUolVQAg2XMAI5K-q3UzCv-Q",
+  authDomain: "pari-live-eb46b.firebaseapp.com",
+  projectId: "pari-live-eb46b",
+  storageBucket: "pari-live-eb46b.firebasestorage.app",
+  messagingSenderId: "416142084953",
+  appId: "1:416142084953:web:97a79e13aa79335dce5a48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+// LOGIN FUNCTIONS
+window.register = () =>{
+  createUserWithEmailAndPassword(auth,email.value,password.value)
+  .then(()=>alert("Kont kreye"))
+  .catch(e=>alert(e.message))
+}
+
+window.login = () =>{
+  signInWithEmailAndPassword(auth,email.value,password.value)
+  .then(()=>alert("Konekte"))
+  .catch(e=>alert(e.message))
+}
+
+window.logout = () =>{
+  signOut(auth)
+  .then(()=>alert("Dekonekte"))
+  .catch(e=>alert(e.message))
+}
+
+// CHAT FUNCTIONS
+window.send = async ()=>{
+  if(message.value==="") return;
+  await addDoc(collection(db,"chat"),{text:message.value});
+  message.value="";
+}
+
+// PARI FUNCTIONS
+window.addBet = async ()=>{
+  if(bet.value==="") return;
+  await addDoc(collection(db,"bets"),{text:bet.value});
+  bet.value="";
+}
+
+// LIVE UPDATE CHAT
+onSnapshot(collection(db,"chat"),(snap)=>{
+  chat.innerHTML="";
+  snap.forEach(doc=>{
+    chat.innerHTML+=`<div class="msg">${doc.data().text}</div>`;
+  });
+});
+
+// LIVE UPDATE BET
+onSnapshot(collection(db,"bets"),(snap)=>{
+  bets.innerHTML="";
+  snap.forEach(doc=>{
+    bets.innerHTML+=`<div class="msg">${doc.data().text}</div>`;
+  });
+});
+</script>
+
+</body>
+</html>
