@@ -1,192 +1,41 @@
 <!DOCTYPE html>
-<html lang="ht">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PARI LIVE PRO MAX</title>
-
-<style>
-body{margin:0;font-family:Arial;background:#0b0b0b;color:white}
-header{background:linear-gradient(90deg,orange,red);padding:15px;text-align:center;font-size:20px}
-.container{padding:10px;display:flex;flex-direction:column;gap:10px}
-.box{background:#1c1c1c;padding:10px;border-radius:10px;box-shadow:0 0 10px #000}
-input,button{width:100%;margin-top:5px;padding:10px;border:none;border-radius:5px}
-button{background:orange;font-weight:bold;cursor:pointer}
-button:hover{background:red;color:white}
-#chat,#matches{height:180px;overflow:auto;background:#111;padding:5px;border-radius:5px}
-.msg{background:#00ccff;margin:3px;padding:5px;border-radius:5px;color:black}
-</style>
+<title>Login</title>
 </head>
 
 <body>
 
-<header>🔥 PARI LIVE PRO MAX 🔥</header>
+<h2>Login</h2>
 
-<div class="container">
+<input type="email" id="email" placeholder="Email"><br><br>
+<input type="password" id="password" placeholder="Password"><br><br>
 
-<div class="box">
-<h3>🔐 Kont</h3>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Modpas">
-<button onclick="register()">Kreye Kont</button>
-<button onclick="login()">Antre</button>
-<button onclick="logout()">Dekonekte</button>
-</div>
-
-<div class="box">
-<h3>💰 Wallet</h3>
-<div id="balance">Balance: 0$</div>
-</div>
-
-<div class="box">
-<h3>⚽ Admin (Ajoute Match)</h3>
-<input id="team1" placeholder="Ekip 1">
-<input id="team2" placeholder="Ekip 2">
-<input id="cote" placeholder="Cote">
-<button onclick="addMatch()">Ajoute Match</button>
-</div>
-
-<div class="box">
-<h3>🎯 Match Disponib</h3>
-<div id="matches"></div>
-</div>
-
-<div class="box">
-<h3>💬 Chat LIVE</h3>
-<div id="chat"></div>
-<input id="message" placeholder="Ekri mesaj">
-<button onclick="send()">Voye</button>
-</div>
-
-</div>
+<button onclick="login()">Login</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, addDoc, collection, onSnapshot, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyA98JXVs0cnUolVQAg2XMAI5K-q3UzCv-Q",
-authDomain: "pari-live-eb46b.firebaseapp.com",
-projectId: "pari-live-eb46b",
-storageBucket: "pari-live-eb46b.firebasestorage.app",
-messagingSenderId: "416142084953",
-appId: "1:416142084953:web:97a79e13aa79335dce5a48"
+  apiKey: "AIzaSyA98JXVs0cnUolVQAg2XMAI5K-q3UzCv-Q",
+  authDomain: "pari-live-eb46b.firebaseapp.com",
+  projectId: "pari-live-eb46b",
+  appId: "1:416142084953:web:97a79e13aa79335dce5a48"
 };
 
-const ADMIN_EMAIL = "METE_EMAIL_OU_ISIT";
-
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
+const auth = getAuth(app);
 
-// REGISTER
-window.register = ()=>{
-createUserWithEmailAndPassword(auth,email.value,password.value)
-.then(async cred=>{
-await setDoc(doc(db,"users",cred.user.uid),{
-email:cred.user.email,
-balance:100,
-status:"online"
-});
-alert("Kont kreye");
-}).catch(e=>alert(e.message));
-}
+window.login = function() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-// LOGIN
-window.login = ()=>{
-signInWithEmailAndPassword(auth,email.value,password.value)
-.then(()=>alert("Konekte"))
-.catch(e=>alert(e.message));
-}
-
-// LOGOUT
-window.logout = ()=>{
-signOut(auth);
-}
-
-// BALANCE
-onAuthStateChanged(auth,user=>{
-if(user){
-onSnapshot(doc(db,"users",user.uid),snap=>{
-if(snap.exists()){
-balance.innerHTML="Balance: "+snap.data().balance+"$";
-}
-});
-}
-});
-
-// ADD MATCH
-window.addMatch = async ()=>{
-const user = auth.currentUser;
-if(!user || user.email !== ADMIN_EMAIL){
-alert("Ou pa admin");
-return;
-}
-
-await addDoc(collection(db,"matches"),{
-team1:team1.value,
-team2:team2.value,
-cote:parseFloat(cote.value)
-});
-
-alert("Match ajoute");
-}
-
-// SHOW MATCH
-onSnapshot(collection(db,"matches"),snap=>{
-matches.innerHTML="";
-snap.forEach(docSnap=>{
-const m = docSnap.data();
-
-matches.innerHTML+=`
-<div class="msg">
-${m.team1} vs ${m.team2}<br>
-Cote: ${m.cote}<br>
-<input id="bet-${docSnap.id}" placeholder="Montan">
-<button onclick="bet('${docSnap.id}',${m.cote})">Parie</button>
-</div>`;
-});
-});
-
-// BET
-window.bet = async(id,cote)=>{
-const user = auth.currentUser;
-if(!user) return alert("Konekte");
-
-const amount = parseFloat(document.getElementById("bet-"+id).value);
-const ref = doc(db,"users",user.uid);
-const snap = await getDoc(ref);
-let bal = snap.data().balance;
-
-if(amount>bal) return alert("Lajan pa ase");
-
-await updateDoc(ref,{balance:bal-amount});
-
-await addDoc(collection(db,"bets"),{
-user:user.email,
-amount,
-cote,
-gain:amount*cote,
-status:"pending"
-});
-
-alert("Pari valide");
-}
-
-// CHAT
-window.send = async ()=>{
-if(message.value==="") return;
-await addDoc(collection(db,"chat"),{text:message.value});
-message.value="";
-}
-
-onSnapshot(collection(db,"chat"),snap=>{
-chat.innerHTML="";
-snap.forEach(doc=>{
-chat.innerHTML+=`<div class="msg">${doc.data().text}</div>`;
-});
-});
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => alert("Login OK"))
+    .catch((error) => alert(error.message));
+};
 </script>
 
 </body>
